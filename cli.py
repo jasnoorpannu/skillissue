@@ -1,5 +1,6 @@
 import argparse
 import sys
+import select
 from pathlib import Path
 
 from core.shell_hook import create_event, log_event, read_last_event, HISTORY_PATH
@@ -7,19 +8,34 @@ from core.parser import parse_event
 from core.suggestion_engine import generate_suggestion
 
 
-#Colours
+# Colours
 RED = "\033[91m"
 RESET = "\033[0m"
 
+
+def _safe_stdin_read() -> str:
+    """
+    Prevents blocking forever when run inside a preexec/precmd hook.
+    Reads stdin only if data is immediately available.
+    """
+    if sys.stdin.isatty():
+        return ""
+
+    r, _, _ = select.select([sys.stdin], [], [], 0.01)
+    if r:
+        return sys.stdin.read()
+
+    return ""
 
 
 def cmd_hook(args: argparse.Namespace) -> int:
     """
     Shell integration entrypoint.
-    Reads the command output from stdin, logs it, runs the suggestion engine,
-    and prints a colored suggestion (to stderr) only if one exists.
+    Reads command output safely (non-blocking), logs event,
+    runs suggestion engine, prints colored suggestions.
     """
-    output = sys.stdin.read()
+    output = _safe_stdin_read()
+
     event = create_event(args.cmd, args.exit, output)
     log_event(event)
     parsed = parse_event(event)
@@ -27,10 +43,6 @@ def cmd_hook(args: argparse.Namespace) -> int:
 
     if suggestion:
         import random
-
-        RED = "\033[91m"
-        RESET = "\033[0m"
-
         prefixes = [
             "huge L detected",
             "skill issue confirmed",
@@ -41,9 +53,9 @@ def cmd_hook(args: argparse.Namespace) -> int:
             "git just shook its head",
             "this commit will haunt you",
         ]
-
         banner = random.choice(prefixes)
-        sys.stderr.write(f"\n{RED}✖ skillissue | {banner}:{RESET}\n")
+
+        sys.stderr.write(f"\n{RED}$ skillissue | {banner}:{RESET}\n")
         sys.stderr.write(suggestion.text + "\n\n")
 
     return 0
@@ -51,7 +63,7 @@ def cmd_hook(args: argparse.Namespace) -> int:
 
 def cmd_last(args: argparse.Namespace) -> int:
     """
-    Debug: show the last logged event and suggested fix (no colors, just readable).
+    Debug: show the last logged event and suggested fix.
     """
     raw = read_last_event()
     if not raw:
@@ -72,12 +84,13 @@ def cmd_last(args: argparse.Namespace) -> int:
         print(suggestion.text)
     else:
         print("\nNo suggestion for this event.")
+
     return 0
 
 
 def cmd_history(args: argparse.Namespace) -> int:
     """
-    Show where data/history.log lives (so users can inspect/log problems).
+    Show where data/history.log lives.
     """
     print(f"History file: {HISTORY_PATH}")
     if HISTORY_PATH.exists():
@@ -90,8 +103,8 @@ def cmd_history(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="ai-assisted-terminal",
-        description="Prototype AI-assisted terminal helper.",
+        prog="skillissue",
+        description="SkillIssue terminal helper.",
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
 

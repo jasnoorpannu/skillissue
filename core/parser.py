@@ -1,36 +1,52 @@
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable, List
-
-from .shell_hook import TerminalEvent
+import json
+from core.shell_hook import TerminalEvent
 
 
 @dataclass
 class ParsedEvent:
     timestamp: datetime
-    command: str
+    full_command: str
+    cmd: str
+    subcommand: str
+    args: List[str]
+    tokens: List[str]
     exit_code: int
     output: str
 
 
 def parse_event(raw: TerminalEvent) -> ParsedEvent:
-    """Convert raw TerminalEvent to ParsedEvent with datetime object."""
     ts = datetime.fromisoformat(raw.timestamp.replace("Z", "+00:00"))
+
+    text = (raw.command or "").strip()
+    text = " ".join(text.split())
+
+    parts = text.split() if text else []
+
+    cmd = parts[0] if parts else ""
+    sub = parts[1] if len(parts) > 1 else ""
+
+    args = parts[1:] if len(parts) > 1 else []
+    tokens = parts
+
     return ParsedEvent(
         timestamp=ts,
-        command=raw.command,
+        full_command=text,
+        cmd=cmd,
+        subcommand=sub,
+        args=args,
+        tokens=tokens,
         exit_code=raw.exit_code,
-        output=raw.output,
+        output=raw.output or "",
     )
 
 
 def read_events(history_path: Path) -> Iterable[ParsedEvent]:
-    """Stream all events from history.log."""
     if not history_path.exists():
         return []
-
     with history_path.open("r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -45,6 +61,5 @@ def read_events(history_path: Path) -> Iterable[ParsedEvent]:
 
 
 def read_last_n_events(history_path: Path, n: int = 50) -> List[ParsedEvent]:
-    """Return last N events (inefficient but fine for v1)."""
     events = list(read_events(history_path))
     return events[-n:]
