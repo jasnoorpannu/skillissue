@@ -7,7 +7,7 @@ skillissue_capture() {
     [[ -z "$cmd" ]] && return
 
     case "$cmd" in
-        skillissue*|*cli.py*|precmd*|preexec*|_* )
+        skillissue*|*cli.py*|_* )
             return ;;
     esac
 
@@ -31,13 +31,26 @@ command_not_found_handle() {
     return 127
 }
 
+REAL_GIT="$(command -v git)"
+
 _skillissue_run_and_capture() {
     local bin="$1"; shift
     local args=("$@")
     local tmp="$(mktemp /tmp/skillissue.XXXXXX)"
 
-    command "$bin" "${args[@]}" 2>&1 | tee "$tmp"
-    local rc=${PIPESTATUS[0]}
+    command "$bin" "${args[@]}" >"$tmp" 2>&1
+    local rc=$?
+
+    if [[ "$bin" = "git" ]]; then
+        if grep -qi "not a git repository" "$tmp" || \
+           grep -qi "GIT_DISCOVERY_ACROSS_FILESYSTEM" "$tmp"; then
+            true
+        else
+            cat "$tmp"
+        fi
+    else
+        cat "$tmp"
+    fi
 
     python3 "$SKILLISSUE_ROOT/cli.py" hook \
         --cmd "$bin ${args[*]}" \
@@ -46,10 +59,6 @@ _skillissue_run_and_capture() {
     rm -f "$tmp"
     return $rc
 }
-
-if type -P git >/dev/null 2>&1; then
-    git() { _skillissue_run_and_capture git "$@"; }
-fi
 
 if type -P npm >/dev/null 2>&1; then
     npm() { _skillissue_run_and_capture npm "$@"; }
