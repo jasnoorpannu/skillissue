@@ -1,34 +1,148 @@
-# AI-Assisted Terminal (prototype)
+# skillissue
 
-You broke something, this tries to guess **how** and **what to do next**.
+`skillissue` is a lightweight terminal assistant that watches your commands, detects common mistakes, and tells you what you *meant* to do — loudly, clearly, and without pretending to be smarter than you.
 
-## What it does (for now)
+It runs locally, requires no API keys, no cloud, no telemetry, and does **not** execute commands for you.
+It only observes failures and suggests fixes.
 
-- Logs terminal commands + their output into `data/history.log` (JSONL).
-- Runs simple rules + plugins on errors:
-  - git issues (conflicts, missing files)
-  - docker daemon / space issues
-  - python tracebacks
-  - basic `command not found`, `EADDRINUSE`, etc.
-- Prints **inline suggestions** after failed commands.
+If you typo `mkkdir`, it will call it out.
+If a command fails, it will explain why.
+If everything works, it stays quiet.
 
-No ML yet. This is the rules-based scaffolding that will later feed training data.
+Minimal. Opinionated. Slightly judgmental.
 
-## Project layout
+---
+
+## Features
+
+* Catches **command typos** (e.g. `mkkdir → mkdir`)
+* Detects **command-not-found** errors
+* Surfaces **useful suggestions** after failed commands
+* Works in **zsh and bash**
+* Zero dependencies beyond Python 3
+* No background daemon, no shell replacement
+* Runs entirely on your machine
+
+What it **does not** do:
+
+* It does not auto-run corrected commands
+* It does not modify your shell behavior
+* It does not phone home
+* It does not “AI hallucinate” fixes
+
+---
+
+## Requirements
+
+* Python **3.8+**
+* `bash` or `zsh`
+* Linux / macOS (Windows not supported)
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/<your-username>/skillissue.git
+cd skillissue
+```
+
+Run the installer:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+Then restart your terminal:
+
+```bash
+exec $SHELL
+```
+
+That’s it.
+
+`skillissue` now hooks into your shell and activates automatically.
+
+---
+
+## Usage
+
+Use your terminal normally.
+
+When a command fails, `skillissue` may respond like:
 
 ```text
-ai-assisted-terminal/
-  core/
-    shell_hook.py        # logging + event model
-    parser.py            # parse history.log
-    classifier.py        # dumb heuristics: error vs success, category
-    suggestion_engine.py # call rules/plugins, pick best suggestion
-    rules.py             # generic pattern-based rules
-  plugins/
-    git.py               # git-specific suggestions
-    docker.py            # docker-specific suggestions
-    python.py            # python-error-specific suggestions
-  data/
-    history.log          # auto-created JSONL event log
-    training.jsonl       # future: labeled data for ML
-  cli.py                 # entrypoint: hook, last, history
+✖ skillissue | skill issue confirmed:
+Command 'mkkdir' not found.
+Did you mean: `mkdir` ?
+```
+
+If there’s nothing useful to say, it stays silent.
+
+No commands to remember.
+No aliases to use.
+No new workflow to learn.
+
+---
+
+## Uninstallation
+
+To completely remove `skillissue` from your system:
+
+```bash
+cd path/to/skillissue
+chmod +x uninstall.sh
+./uninstall.sh
+```
+
+Restart your terminal:
+
+```bash
+exec $SHELL
+```
+
+Optionally delete the repository:
+
+```bash
+rm -rf skillissue
+```
+
+After this, **no hooks, no files, no residue** remain.
+
+---
+
+## How It Works (Briefly)
+
+* Hooks into shell lifecycle (`preexec`, `precmd`, `command_not_found`)
+* Captures:
+
+  * the command you ran
+  * exit code
+  * output
+* Runs a small rules engine in Python
+* Prints a suggestion *only if one is actually helpful*
+
+No ML model yet.
+No magic.
+Just common sense, automated.
+
+---
+
+## Philosophy
+
+Terminals already tell you *that* something failed.
+`skillissue` tells you **why** and **what to do next**.
+
+It does not fix mistakes for you.
+It simply makes them obvious.
+
+---
+
+## License
+
+MIT
+
+Use it. Fork it. Improve it.
