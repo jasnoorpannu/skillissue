@@ -1,6 +1,6 @@
 # skillissue
 
-`skillissue` is a lightweight terminal assistant that watches your commands, detects common mistakes, and tells you what you *meant* to do — loudly, clearly, and without pretending to be smarter than you.
+`skillissue` is a lightweight terminal assistant that watches your commands, detects common mistakes, and tells you what you *meant* to do loudly, clearly, and without pretending to be smarter than you.
 
 It runs locally, requires no API keys, no cloud, no telemetry, and does **not** execute commands for you.
 It only observes failures and suggests fixes.
