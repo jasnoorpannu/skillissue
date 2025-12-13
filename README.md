@@ -11,7 +11,6 @@ If everything works, it stays quiet.
 
 Minimal. Opinionated. Slightly judgmental.
 
----
 
 ## Features
 
@@ -30,7 +29,6 @@ What it **does not** do:
 * It does not phone home
 * It does not “AI hallucinate” fixes
 
----
 
 ## Requirements
 
@@ -38,7 +36,6 @@ What it **does not** do:
 * `bash` or `zsh`
 * Linux / macOS (Windows not supported)
 
----
 
 ## Installation
 
@@ -66,7 +63,6 @@ That’s it.
 
 `skillissue` now hooks into your shell and activates automatically.
 
----
 
 ## Usage
 
@@ -86,7 +82,6 @@ No commands to remember.
 No aliases to use.
 No new workflow to learn.
 
----
 
 ## Uninstallation
 
@@ -112,7 +107,6 @@ rm -rf skillissue
 
 After this, **no hooks, no files, no residue** remain.
 
----
 
 ## How It Works (Briefly)
 
@@ -129,7 +123,6 @@ No ML model yet.
 No magic.
 Just common sense, automated.
 
----
 
 ## Philosophy
 
@@ -139,7 +132,6 @@ Terminals already tell you *that* something failed.
 It does not fix mistakes for you.
 It simply makes them obvious.
 
----
 
 ## License
 
